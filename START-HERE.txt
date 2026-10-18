@@ -1,0 +1,75 @@
+TABLETOP MAP - DM LAPTOP SETUP
+Windows package: 2026-10-18 / app 0.3.0 / current working-copy snapshot
+
+1. Install Node.js (22.12.0 or newer) from https://nodejs.org/en/download
+   Choose Windows and the installer matching your laptop (usually x64).
+   Use the default installation options. This is a one-time requirement.
+2. Right-click the ZIP and choose Extract All. Move the extracted folder to
+   a writable local folder, for example Documents\TabletopMap-DM.
+   Do not run the app from inside the ZIP. Avoid a shared/synced folder.
+3. Open the TabletopMap folder and double-click Start-TabletopMap.cmd.
+   Keep the command window open during play. The DM browser should open.
+   If it does not, open http://localhost:5180 in Edge or Chrome.
+4. Connect the table monitor. In Windows Settings > System > Display,
+   select Extend these displays. Keep the DM window on the laptop.
+5. Click Open table display, allow the popup, and move that window to the
+   table monitor. Enter fullscreen and leave both browser zooms at 100%.
+6. Import a PNG/JPEG map. It starts covered and blanked. Reveal an area,
+   choose Show table, and check that only the revealed area appears.
+7. Before using physical miniatures, follow README.md's calibration steps
+   and measure a square on the actual table screen with a ruler.
+8. Stop after play with Ctrl+C in the command window. Restart next time by
+   double-clicking Start-TabletopMap.cmd. Saved maps live in data beside it.
+
+FIRST-RUN REVIEW CHECKLIST
+[ ] DM page opens; map import and reveal work.
+[ ] Table display opens on the second monitor without exposing DM secrets.
+[ ] Grid squares measure correctly on the physical screen.
+[ ] Stop and restart; saved map, fog and tokens are retained.
+[ ] If using phones: put laptop/phones on the same trusted Wi-Fi, enable
+    player controls on Wi-Fi in the DM page and scan an assigned character
+    invitation. If Windows asks, allow Node on Private networks for this use.
+    Guest Wi-Fi isolation may prevent phones connecting.
+[ ] Try the integrated dice roller and any sound/effects you plan to use.
+
+YOUR EXISTING CAMPAIGN (OPTIONAL)
+This ZIP is a fresh app; it intentionally contains no saved campaign,
+map images, private character links, browser dice history or videos.
+To move your current campaign without commands:
+- On the original laptop export a session backup and keep it somewhere safe.
+- Stop Tabletop Map on both laptops.
+- Copy the complete original TabletopMap\data folder into the new
+  TabletopMap folder BEFORE the new laptop's first start.
+- If the new laptop already has a data folder, rename it to data-before-transfer
+  first; do not merge/overwrite two campaigns. Then copy the original data.
+- Start on the DM laptop and check the maps and fog before playing.
+If your original setup uses TABLETOP_DATA, copy that directory instead.
+For an exported JSON-only restore, see README.md's restore-backup instructions.
+Player invitation addresses can change on the new laptop: generate new invites.
+
+TROUBLESHOOTING
+- 'Install Node.js': install it, then close/reopen the launcher.
+- 'Address already in use': close the earlier Tabletop Map server window.
+- Blank table: check Show table, revealed areas, and Table connected.
+- Keep the whole app folder together. Back up data before replacing/upgrading.
+- Once Node and a browser are installed, normal play needs no internet.
+
+See TabletopMap\README.md for the full user guide and VERIFICATION.md for
+existing verification history. Physical laptop/table/phone acceptance remains
+part of the checklist above.
+
+OPTIONAL: TWO TABLE MONITORS WITH ONE BORDERLESS DISPLAY
+Browser mode works without this optional installation.
+1. With internet available, open TabletopMap\desktop and double-click
+   Install-Windows-Display.cmd once. Keep the entire application together.
+2. Start the app. Under Player display, choose Windows display - fill two screens.
+3. Choose the two table screens and click Fill both table screens. Keep the
+   laptop DM screen separate. Both table screens need matching Windows scaling
+   and must form one rectangle without gaps in Windows Display Settings.
+4. Use Best fit & center, measure grid squares, then lock placement.
+5. Escape or Close Windows display closes it. Use Browser display instead
+   returns to the usual browser window.
+[ ] If using this option: check both monitors, taskbar coverage, physical join,
+    Escape/close, sound, phone QR scanning and browser fallback before a game.
+The optional runtime downloads during installation; afterward play is offline.
+The October 18 package includes this option, QR placement and compass updates.

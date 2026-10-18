@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121019">
+  <title>Arcana — Dice Roller</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="dice.js" defer></script><script src="dice3d.js" defer></script><script src="app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header><a class="brand" href="./"><span class="brand-mark">◇</span> ARCANA <span class="brand-divider"></span><span class="brand-sub">DICE ROLLER</span></a><span class="table-status"><i></i> Ready for adventure</span></header>
+    <main>
+      <div class="intro"><div><p class="eyebrow">LET FATE DECIDE</p><h1>Your next adventure<br>starts with a roll<span>.</span></h1><p class="subtitle">From quiet taverns to dragon’s lairs. Make every roll count.</p></div><div class="hero-die" aria-hidden="true"><svg viewBox="0 0 180 180"><path d="M90 12 161 54 161 128 90 169 19 128 19 54Z M90 12 52 69 128 69 90 12 M19 54 52 69 19 128 M161 54 128 69 161 128 M52 69 90 137 128 69 M19 128 90 137 161 128 M90 137 90 169"/><text x="90" y="105">20</text></svg></div></div>
+      <div class="workspace">
+        <section class="roller panel" aria-labelledby="roller-title">
+          <div class="section-heading"><h2 id="roller-title">Build your roll</h2><span class="mini-label">THE DICE ARE YOURS</span></div>
+          <label class="field-label">Choose your dice</label>
+          <div class="dice-picker" id="dice-picker"></div>
+          <div class="settings-row"><div><label for="quantity" class="field-label">Number of dice</label><div class="stepper"><button id="decrease" aria-label="Decrease dice count">−</button><input id="quantity" type="number" min="1" max="100" value="1"><button id="increase" aria-label="Increase dice count">+</button></div></div><div><label for="modifier" class="field-label">Modifier</label><div class="modifier-field"><span>±</span><input id="modifier" type="number" min="-10000" max="10000" value="0" aria-label="Roll modifier"></div></div></div>
+          <label class="field-label" id="mode-label">Roll mode <span class="muted">· for a single d20</span></label><div class="modes" role="group" aria-labelledby="mode-label"><button class="active" data-mode="normal">Normal</button><button data-mode="advantage">Advantage</button><button data-mode="disadvantage">Disadvantage</button></div>
+          <div class="expression-label"><label for="expression" class="field-label">Roll expression</label><span>Make it your own</span></div><input id="expression" class="expression" value="1d20" autocomplete="off" spellcheck="false" aria-describedby="expression-help error"><p class="input-help" id="expression-help">Mix dice and modifiers, like <button id="example">2d6 + 1d8 + 3</button></p>
+          <div class="dice-style-setting"><div><label for="dice-3d">3D dice</label><p>Solid dice with depth, light, and shadow</p></div><input type="checkbox" id="dice-3d" role="switch"></div>
+          <p id="error" class="error" role="alert" hidden></p><label class="dice-style-toggle"><input id="share-roll" type="checkbox"> Share this roll on the table</label><button id="roll" class="roll-button"><span class="roll-icon">◇</span> Roll the dice <span class="shortcut">↵</span></button>
+          <p class="random-note"><span>✦</span> A little chance. A lot of possibility.</p>
+        </section>
+        <section class="result panel" aria-labelledby="result-title"><div class="section-heading"><h2 id="result-title">The outcome</h2><span id="result-expression" class="expression-chip">1d20</span></div><div id="outcome" class="outcome" aria-live="polite"><span class="result-kicker">AWAITING YOUR ROLL</span><div class="empty-symbol">◇</div><h3>Fortune favors the bold.</h3><p>Pick your dice and give fate a nudge.</p></div><div class="result-footer"><span class="small-star">✧</span><span>Every great story has a little uncertainty.</span></div></section>
+      </div>
+      <section class="history panel"><div class="section-heading"><div class="history-title"><h2>Roll history</h2><span id="history-count">0 rolls</span></div><button id="clear-history" class="text-button" disabled>Clear history <span>↗</span></button></div><div id="history-list"><div class="history-empty"><span>↺</span><p>A fresh chapter. Your rolls will appear here.</p></div></div></section>
+      <footer><span>ARCANA <span class="footer-dot">·</span> A companion for your tabletop adventures</span><span>Roll with possibility.</span></footer>
+    </main>
+  </div>
+</body>
+</html>

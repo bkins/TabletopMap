@@ -1,0 +1,7 @@
+{
+  "name": "tabletop-player-display",
+  "version": "0.1.0",
+  "private": true,
+  "main": "main.cjs",
+  "dependencies": { "electron": "44.8.0" }
+}
