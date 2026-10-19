@@ -7,3 +7,16 @@
 .character-profile{margin-top:20px;border:1px solid var(--line);border-radius:12px;text-align:left;overflow:hidden}.character-profile summary{padding:16px;cursor:pointer;font-weight:600}.character-profile form{padding:0 16px 16px}.character-profile label{display:block;margin-top:12px}.character-profile input{width:100%;box-sizing:border-box}.character-profile button{min-height:44px}.character-profile #profilePreview{display:block;margin:16px auto;border-radius:50%;object-fit:cover}.character-profile .row{margin-top:12px}
 
 .placement-tools{display:flex;align-items:center;gap:8px;padding:12px;flex-wrap:wrap}.placement-tools p{flex-basis:100%;margin:0;color:#a6b8ce;font-size:12px}#tablePreviewStage{position:relative}.preview-panel #tablePreviewStage iframe{height:clamp(320px,60vh,700px)}#placementSurface{position:absolute;inset:0;cursor:grab;touch-action:none;outline:2px solid #a2dfb9;outline-offset:-2px}#placementSurface.dragging{cursor:grabbing}
+
+/* DM modes share one canvas, preview and set of controls. */
+.dm-modes{max-width:1800px;margin:auto;padding:16px 22px;border-bottom:1px solid var(--line);background:#121924;position:sticky;top:0;z-index:5}
+.dm-modes [role=tablist]{display:inline-flex;gap:4px;padding:4px;background:#0d1118;border:1px solid var(--line);border-radius:10px}
+.dm-modes [role=tab]{min-width:130px;min-height:42px;border-color:transparent;background:transparent;font-size:14px;font-weight:600}
+.dm-modes [aria-selected=true]{background:#234b3b;border-color:#86cfa2;color:#c9ffdc}
+.dm-modes p{display:inline-block;margin:8px 0 8px 18px;color:#a9b9cf;font-size:12px;line-height:1.6}
+.canvas-tools{padding:0 20px 12px;display:flex;align-items:center;gap:18px;border-bottom:1px solid var(--line)}
+.canvas-tools label{min-width:200px}.canvas-tools p{max-width:380px}
+body[data-dm-mode=play] #placementSurface{display:none!important}
+@media(min-width:951px){aside{max-height:calc(100vh - 180px)}}
+@media(max-width:950px){.dm-modes p{display:block;margin:10px 0 0}.canvas-tools{flex-wrap:wrap;gap:0}}
+@media(max-width:650px){.workspace{order:0}.dm-modes{padding:12px}.dm-modes [role=tab]{min-width:120px}aside{max-height:45vh;overflow:auto}}

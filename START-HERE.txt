@@ -1,5 +1,5 @@
 TABLETOP MAP - DM LAPTOP SETUP
-Windows package: 2026-10-18 / app 0.3.0 / current working-copy snapshot
+Windows package: 2026-10-19 / app 0.3.0 / accepted DM modes v1
 
 1. Install Node.js (22.12.0 or newer) from https://nodejs.org/en/download
    Choose Windows and the installer matching your laptop (usually x64).
@@ -72,4 +72,24 @@ Browser mode works without this optional installation.
 [ ] If using this option: check both monitors, taskbar coverage, physical join,
     Escape/close, sound, phone QR scanning and browser fallback before a game.
 The optional runtime downloads during installation; afterward play is offline.
-The October 18 package includes this option, QR placement and compass updates.
+The October 19 package includes this option, QR placement and compass updates.
+
+MAP SETUP AND GAME-PLAY TABS
+Start in Map Setup to import/select maps, prepare tokens and adjust grid/display.
+Switch to Game-Play for reveal/cover, token movement/visibility, QR invitations,
+atmosphere and dice. The map and table preview remain available in both modes.
+Open display and Blank/Show are always in the top bar.
+Switching tabs preserves saved progress and unapplied edits. Use Apply/Save
+before reloading or closing the page; unapplied edits do not survive a reload.
+Both modes edit the same tokens. Save token settings applies the full token
+form, including retained edits from Map Setup.
+Selecting a different saved map still changes the active player map and blanks
+the table after confirmation. Private preview of another map is future work.
+
+UPGRADING AN EXISTING INSTALLATION
+Export a session backup and stop the old app first. Extract this package into
+a new folder. Copy the complete old TabletopMap\data folder into the new
+TabletopMap folder before starting it. Do not merge two campaign data folders.
+Your existing maps, fog and tokens remain in that data folder. Never replace
+it with a blank folder. If TABLETOP_DATA is set, keep using its existing path.
+The optional Windows runtime must be installed in the new folder if used.

@@ -3,6 +3,33 @@ const $=id=>document.getElementById(id),canvas=$('dm'),ctx=canvas.getContext('2d
 let selectedToken='',controlsPending=false;
 let placementDraft=null,placementDrag=null,placementWheelTimer=null;
 let actionTail=Promise.resolve();
+// Mode and unapplied form drafts belong to this DM page, never the campaign.
+let dmMode='setup';
+const modeTools={setup:'pan',play:'brush'},modeScroll={setup:0,play:0},formDrafts=new Map();
+const draftFields={x:'view.x',y:'view.y',scale:'view.scale',rotation:'view.rotation',ppi:'view.ppi',inches:'view.squareInches',pixels:'grid.pixels',gridX:'grid.x',gridY:'grid.y',overlay:'grid.overlay',tokenName:'token.name',tokenColor:'token.color',tokenRadius:'token.radius',tokenVisible:'token.visible',tokenX:'token.x',tokenY:'token.y',atmosphereEffect:'atmosphere.effect',atmosphereSound:'atmosphere.sound',atmosphereVolume:'atmosphere.volume',compassRotation:'compass.rotation'};
+function draftKey(id){return `${state?.active||''}:${id.startsWith('token')?selectedToken:''}:${id}`;}
+function fieldValue(el){return el.type==='checkbox'?el.checked:el.value;}
+function rememberDraft(id){if(!state?.active)return;formDrafts.set(draftKey(id),{id,value:fieldValue($(id))});updateModeHint();}
+function restoreDrafts(){for(const id of Object.keys(draftFields)){const d=formDrafts.get(draftKey(id));if(d){if($(id).type==='checkbox')$(id).checked=d.value;else $(id).value=d.value;}}updateModeHint();}
+function savedDrafts(a){const pending=[];for(const id of Object.keys(draftFields)){const [group,field]=draftFields[id].split('.');const payload=group==='token'&&a.type==='token-update'?a.token:a.type===group?a[group]:null;if(!payload||!Object.hasOwn(payload,field)||group==='token'&&a.id!==selectedToken)continue;const key=draftKey(id),draft=formDrafts.get(key);if(draft)pending.push([key,draft]);}return pending;}
+function updateModeHint(){const dirty=Object.keys(draftFields).some(id=>formDrafts.has(draftKey(id)));$('modeHint').textContent=(dmMode==='setup'?'Prepare the map, grid and table display.':'Reveal areas, move tokens and run the game.')+(dirty?' Unapplied edits are kept between tabs; use their Apply or Save button to apply them.':' Switching tabs keeps your progress and player display.');}
+function setDMMode(mode){
+ if(!['setup','play'].includes(mode))return;
+ const sidebar=document.querySelector('aside');modeScroll[dmMode]=sidebar.scrollTop;
+ modeTools[dmMode]=$('tool').value;dmMode=mode;document.body.dataset.dmMode=mode;
+ document.querySelectorAll('[data-dm-mode]').forEach(el=>{if(el!==document.body)el.hidden=el.dataset.dmMode!==mode;});
+ for(const [name,id] of [['setup','setupTab'],['play','playTab']]){$(id).setAttribute('aria-selected',String(name===mode));$(id).tabIndex=name===mode?0:-1;}
+ $('dmWorkspace').setAttribute('aria-labelledby',mode==='setup'?'setupTab':'playTab');
+ const allowed=mode==='setup'?['pan','placeToken','calibrate']:['brush','rectangle','polygon','placeToken','pan'];
+ for(const option of $('tool').options){option.hidden=!allowed.includes(option.value);option.disabled=option.hidden;}
+ $('tool').value=allowed.includes(modeTools[mode])?modeTools[mode]:'pan';sidebar.scrollTop=modeScroll[mode];updateModeHint();
+}
+for(const id of Object.keys(draftFields)){for(const event of ['input','change'])$(id).addEventListener(event,()=>rememberDraft(id));}
+for(const [mode,id] of [['setup','setupTab'],['play','playTab']]){
+ $(id).onclick=()=>setDMMode(mode);
+ $(id).onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();const next=e.key==='Home'?'setup':e.key==='End'?'play':dmMode==='setup'?'play':'setup';setDMMode(next);$(next==='setup'?'setupTab':'playTab').focus();};
+}
+
 function action(a){
   const active=state.active;
   const pending=actionTail.then(()=>{
@@ -18,7 +45,8 @@ async function refresh(statusOnly=false){const r=await fetch('/api/state',{signa
   if(map){const loaded=changed||!image?await loadImage('/assets/'+map.asset):image;await loadTokenArt(map);if(ticket!==loadTicket)return;image=loaded;composition=compose(image,map,map.ops.slice(0,map.cursor));if(changed)fitDM();}
   if(statusOnly)controlsPending=true;else{updateControls();controlsPending=false;}draw();
 }
-function updateControls(){
+function updateControls(){renderControls();restoreDrafts();}
+function renderControls(){
   $('empty').hidden=!!map;$('mapTitle').textContent=map?.name||'Your next adventure starts here';$('instructions').textContent=map?'Complete map with a shaded fog guide. Your navigation stays private.':'Import a map to begin. New maps start covered and blanked.';$('maps').replaceChildren(...Object.values(state.maps).map(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;return o;}));$('maps').value=state.active||'';
   $('blank').textContent=state.blank?'Show table · Space':'Blank table · Space';$('previewLabel').textContent=state.blank?'Table is blanked. Show table when ready.':'Same fog, position, and scale as the table display.';
   $('saveStatus').textContent=`Saved locally · revision ${state.revision}`;$('undo').disabled=!map||!map.cursor;$('redo').disabled=!map||map.cursor===map.ops.length;
@@ -37,7 +65,7 @@ function updateControls(){
   for(const id of ['x','y','scale','ppi'])$(id).value=v[id];$('rotation').value=v.rotation||0;$('inches').value=v.squareInches;$('pixels').value=g.pixels;$('gridX').value=g.x;$('gridY').value=g.y;$('overlay').checked=g.overlay;
   $('tableControls').querySelectorAll('input,button').forEach(c=>c.disabled=v.locked);
 }
-async function saveAction(a){busy=true;$('saveStatus').textContent='Saving…';const active=state.active;let revision=state.revision;try{for(let attempt=0;attempt<3;attempt++){const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...a,revision})});const result=await r.json();if(r.ok){await refresh();return;}if(result.error?.startsWith('Session changed')&&attempt<2){const latest=await fetch('/api/state').then(r=>r.json());if(latest.active!==active)throw Error('Active map changed; refresh your controls before editing');revision=latest.revision;continue;}throw Error(result.error);}}catch(e){$('saveStatus').textContent='Save failed — change was not applied';await refresh().catch(()=>{});throw e;}finally{busy=false;}}
+async function saveAction(a){busy=true;$('saveStatus').textContent='Saving…';const active=state.active,drafts=savedDrafts(a);let revision=state.revision;try{for(let attempt=0;attempt<3;attempt++){const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...a,revision})});const result=await r.json();if(r.ok){for(const [key,draft] of drafts)if(formDrafts.get(key)===draft)formDrafts.delete(key);await refresh();return;}if(result.error?.startsWith('Session changed')&&attempt<2){const latest=await fetch('/api/state').then(r=>r.json());if(latest.active!==active)throw Error('Active map changed; refresh your controls before editing');revision=latest.revision;continue;}throw Error(result.error);}}catch(e){$('saveStatus').textContent='Save failed — change was not applied';await refresh().catch(()=>{});throw e;}finally{busy=false;}}
 const run=fn=>async()=>{try{await fn();}catch(e){error(e);}};
 async function confirm(title,text){$('confirmTitle').textContent=title;$('confirmText').textContent=text;return new Promise(resolve=>{$('confirm').addEventListener('close',()=>resolve($('confirm').returnValue==='ok'),{once:true});$('confirm').showModal();});}
 function fitDM(){if(!map)return;view.scale=Math.min(canvas.width/map.width,canvas.height/map.height)*.92;view.x=(canvas.width-map.width*view.scale)/2;view.y=(canvas.height-map.height*view.scale)/2;draw();}
@@ -52,7 +80,7 @@ const screenPoint=e=>{const r=canvas.getBoundingClientRect();return [e.clientX-r
 canvas.onpointerdown=e=>{if(!map||busy||e.button===2)return;const tool=$('tool').value;if(tool==='pan'||e.button===1){e.preventDefault();gesture={pan:screenPoint(e),origin:{...view},pointer:e.pointerId};canvas.setPointerCapture(e.pointerId);return;}
   const p=point(e);if(tool==='polygon'){polygon.push(p);$('finish').hidden=false;draw();return;}
   if(tool==='placeToken'){const t=map.characters?.tokens.find(t=>t.id===selectedToken);if(!t){error(Error('Select a character first'));return;}run(()=>action({type:'token-update',id:t.id,token:{x:Math.max(0,Math.min(map.width,p[0])),y:Math.max(0,Math.min(map.height,p[1]))}}))();return;}
-  if(tool==='calibrate'){if(map.view.locked){error(Error('Unlock the table view before calibrating'));return;}calibration.push(p);if(calibration.length===2){$('pixels').value=Math.round(Math.hypot(calibration[1][0]-calibration[0][0],calibration[1][1]-calibration[0][1])*100)/100;$('gridX').value=Math.round(calibration[0][0]);$('gridY').value=Math.round(calibration[0][1]);calibration=[];$('instructions').textContent='Grid measured. Apply grid & physical scale, then lock the table.';}draw();return;}
+  if(tool==='calibrate'){if(map.view.locked){error(Error('Unlock the table view before calibrating'));return;}calibration.push(p);if(calibration.length===2){$('pixels').value=Math.round(Math.hypot(calibration[1][0]-calibration[0][0],calibration[1][1]-calibration[0][1])*100)/100;$('gridX').value=Math.round(calibration[0][0]);$('gridY').value=Math.round(calibration[0][1]);calibration=[];for(const id of ['pixels','gridX','gridY'])rememberDraft(id);$('instructions').textContent='Grid measured. Apply grid & physical scale, then lock the table.';}draw();return;}
   gesture={pointer:e.pointerId,op:{type:tool,reveal,size:Number($('brush').value),points:tool==='rectangle'?[p,p]:[p]}};canvas.setPointerCapture(e.pointerId);draw();};
 canvas.onpointermove=e=>{if(!gesture)return;if(gesture.pan){const p=screenPoint(e);view.x=gesture.origin.x+p[0]-gesture.pan[0];view.y=gesture.origin.y+p[1]-gesture.pan[1];}else if(gesture.op.type==='rectangle')gesture.op.points[1]=point(e);else if(gesture.op.points.length<20000)gesture.op.points.push(point(e));draw();};
 canvas.onpointerup=run(async()=>{const g=gesture;gesture=null;if(g?.op)await action({type:'operation',op:g.op});draw();});canvas.onpointercancel=()=>{gesture=null;draw();};canvas.oncontextmenu=e=>e.preventDefault();
@@ -68,12 +96,14 @@ $('applyView').onclick=run(()=>action({type:'view',view:{x:Number($('x').value),
 for(const [id,delta] of [['rotateLeft',-90],['rotateRight',90]])$(id).onclick=run(()=>action({type:'view',view:{rotation:(((map.view.rotation||0)+delta)%360+360)%360}}));
 $('calibration').onclick=run(async()=>{const pixels=Number($('pixels').value),ppi=Number($('ppi').value),squareInches=Number($('inches').value);if(!Number.isFinite(ppi)||ppi<=0||!Number.isFinite(squareInches)||squareInches<=0||!Number.isFinite(pixels)||pixels<=0)throw Error('Enter positive calibration values');await action({type:'grid',grid:{pixels,x:Number($('gridX').value),y:Number($('gridY').value),overlay:$('overlay').checked}});await action({type:'view',view:{ppi,squareInches,scale:ppi*squareInches/pixels}});});
 $('fitTable').onclick=run(()=>fitPlayerMap(false));
+$('measureGrid').onclick=()=>{$('tool').value='calibrate';$('tool').onchange();$('instructions').textContent='Click two adjacent grid intersections on the DM map, then Apply grid & physical scale.';};
 $('import').onchange=run(async()=>{const file=$('import').files[0];if(!file)return;if(file.size>40*1024*1024)throw Error('Map exceeds 40 MB');const url=URL.createObjectURL(file);let img;try{img=await loadImage(url);}finally{URL.revokeObjectURL(url);}const r=await fetch('/api/import',{method:'POST',headers:{'x-map-meta':encodeURIComponent(JSON.stringify({name:file.name,width:img.naturalWidth,height:img.naturalHeight}))},body:file});const result=await r.json();if(!r.ok)throw Error(result.error);$('import').value='';await refresh();});
-window.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||$('confirm').open)return;if(e.code==='Space'){e.preventDefault();$('blank').click();}else if(e.key==='Escape'){gesture=null;polygon=[];calibration=[];$('finish').hidden=true;draw();}else if(e.key==='Enter'&&polygon.length)run(finish)();else if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();e.shiftKey?$('redo').click():$('undo').click();}});
+window.addEventListener('keydown',e=>{if(['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)||$('confirm').open)return;if(e.code==='Space'){e.preventDefault();$('blank').click();}else if(e.key==='Escape'){gesture=null;polygon=[];calibration=[];$('finish').hidden=true;draw();}else if(e.key==='Enter'&&dmMode==='play'&&polygon.length)run(finish)();else if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();e.shiftKey?$('redo').click():$('undo').click();}});
 setInterval(async()=>{if(polling)return;polling=true;try{const editing=busy||gesture||placementDraft||polygon.length||document.activeElement?.matches('input,select');await refresh(!!editing);if(!editing&&!busy){const s=state.tableScreens[0];if(s&&map&&(s.width!==map.view.screenWidth||s.height!==map.view.screenHeight))await action({type:'screen',width:s.width,height:s.height});}}catch{ $('connection').textContent='Server disconnected';$('connection').classList.remove('connected');}finally{polling=false;}},1000);
 refresh().catch(error);
 
-function updateCharacters(){
+function updateCharacters(){renderCharacters();restoreDrafts();}
+function renderCharacters(){
   const previousHost=$('inviteHost').value;$('inviteHost').replaceChildren(...(state.networkUrls||[]).map(url=>{const o=document.createElement('option');o.value=url;o.textContent=url;return o;}));if((state.networkUrls||[]).includes(previousHost))$('inviteHost').value=previousHost;
   $('networkEnabled').checked=!!state.networkEnabled;$('networkStatus').textContent=state.networkEnabled?'Wi-Fi enabled. Use the private links below on the same network.':'Wi-Fi disabled. Controls work only on this computer.';
   const c=map?.characters||{enabled:false,keepExplored:true,tokens:[]};$('charactersEnabled').checked=c.enabled;$('visibilityMode').value=c.keepExplored?'explored':'current';
@@ -186,3 +216,5 @@ for(const id of ['playerScreenA','playerScreenB'])$(id).onchange=rememberDisplay
 // Browser is the initial default. Remember an explicit choice, without auto-opening a display.
 displayRequest().then(showDisplayStatus).catch(()=>{$('displayStatus').textContent='Browser display remains available. Refresh to check the optional Windows component.';});
 setInterval(()=>{if(!displayBusy&&$('displayMode').value==='windows'&&!['playerScreenA','playerScreenB'].includes(document.activeElement?.id))displayRequest().then(showDisplayStatus).catch(()=>{});},2000);
+
+setDMMode('setup');

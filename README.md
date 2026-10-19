@@ -2,7 +2,15 @@
 
 A local, offline browser application for gradual discovery at an in-person D&D table. The DM sees the complete player-facing map, editable discovery, and a player composition preview. The table window shows only the composited revealed map. Physical miniatures stay in place because table geometry starts locked and can only change deliberately from the DM controls.
 
-## Start
+## DM workspace modes — October 19 review
+
+Use **Map Setup** to import/select maps, configure the player display, prepare tokens, set the grid/physical scale and adjust the compass. Use **Game-Play** for reveal/cover, token movement and visibility, player QR invitations, atmosphere and dice. The map canvas, table preview and top-bar Open/Blank/Show controls remain available in both. Choose the map tool above the canvas; Setup starts with private navigation, Game-Play with the reveal brush. The **Measure two map grid points** button selects calibration in Setup.
+
+Switching tabs does not change the active map, fog, token positions, player display or private DM pan/zoom. Both modes edit the same tokens. Unapplied form values stay in this DM page across tab switches and background refreshes; use their Apply/Save button to commit them. Save token settings applies that token's complete form, including retained Setup edits. Reloading the page discards unapplied drafts and starts in Setup, so save desired changes first. Saves already underway continue when switching modes.
+
+Selecting a saved map in Setup still changes the active map and blanks the table after confirmation. Private preparation of a different map is future work. See [Phase 1 plan and manual checklist](DM-REDESIGN-PLAN.md) and [future stories](BACKLOG.md). This local review candidate is separate from the October 18 download package.
+
+## Launch instructions
 
 Requires Node.js 22 or newer and a modern browser (Chrome or Edge recommended for the first physical trial). The default Browser display has **no runtime package installs, remote fonts, CDNs, account requirements, or build step**. The optional Windows display has a one-time installation described below. The QR encoder is bundled with its MIT license. Once Node and a browser are installed, play needs no internet.
 

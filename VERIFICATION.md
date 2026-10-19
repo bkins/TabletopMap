@@ -119,3 +119,14 @@ The local server was upgraded on port 5180 after the second backup. A read-only 
 `node test/character-browser-check.js`: **passed**, including existing player movement/fog/mode/occupied-square behavior and DM/player dice/history.
 
 **Human checks pending:** use a real phone's image picker with a personal avatar and verify crop appearance, name entry, save feedback and the mini on the physical table. Mobile viewport checks do not establish physical-device acceptance.
+
+
+## DM workspace modes — 2026-10-19 local review
+
+Candidate: `dm-modes-2026-10-19-v1`, application 0.3.0. `npm test`: **37 passed, none skipped**. `node --check app.js` and targeted `git diff --check` pass.
+
+`node test/dm-modes-browser-check.js`: **passed** with headless Chrome, isolated temporary campaign and an ephemeral port. Covers Setup/Game-Play control visibility, one unchanged canvas and frame set, zero POSTs and unchanged saved/player map during switching, preserved private DM zoom, unapplied calibration/token drafts, the same token saved from Game-Play, delayed-save completion across modes, invalid-save draft retention/correction, keyboard tabs and no horizontal overflow at 390px. It saves desktop Setup/Game-Play and mobile screenshots.
+
+Existing browser suites **passed**: `test/save-browser-check.js`, `test/compass-browser-check.js`, `test/browser-check.js`, `test/character-browser-check.js`. Updated the latter two to enter Game-Play before using its tools/dice. Core browser suite's first concurrent run hit its existing direct-command revision race; a subsequent run passed the full suite. Edge's automated launch exited early in this environment; these successful checks used installed Chrome. No live campaign mutation was used for testing.
+
+Human checks remain separate: normal DM usability/scaling, physical display/phone/audio behavior and manual partial-polygon/grid-measurement workflows. See `DM-REDESIGN-PLAN.md` for the checklist and `review-2026-10-19-dm-modes/Review.md` for exact candidate hashes and frozen screenshots. The GitHub October 18 ZIP remains unchanged.
