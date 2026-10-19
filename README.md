@@ -2,7 +2,7 @@
 
 A local, offline browser application for gradual discovery at an in-person D&D table. The DM sees the complete player-facing map, editable discovery, and a player composition preview. The table window shows only the composited revealed map. Physical miniatures stay in place because table geometry starts locked and can only change deliberately from the DM controls.
 
-## Campaign workspace — 0.4.0 review
+## Campaign workspace — 0.4.0
 
 The DM view has **Map Setup** for preparation and **Game-Play** for the game. Both modes use the same map canvas and token objects; switching tabs preserves pending edits, DM navigation and player connections. Apply/Save desired edits before reloading: unapplied form drafts belong to this browser page only.
 
@@ -34,9 +34,9 @@ Create a named map group and add the selected map. Groups reference reusable map
 
 ### Upgrade and rollback
 
-This review uses saved schema **2**. Before migrating a schema-1 save, startup preserves its original JSON as `session.before-campaign-workspace-v1.json`; original image assets stay in the data directory. The first successful save writes schema 2. Export a complete all-campaign backup before upgrading. Older versions reject schema 2; do not point them at this review data. Keep the accepted 0.3.0 installation/data separate for rollback. Full backup/restore includes campaigns, sessions, resources, groups, tokens, NPC identities and images; restore still creates a new directory.
+This version uses saved schema **2**. Before migrating a schema-1 save, startup preserves its original JSON as `session.before-campaign-workspace-v1.json`; original image assets stay in the data directory. The first successful save writes schema 2. Export a complete all-campaign backup before upgrading. Older versions reject schema 2; do not point them at upgraded data. Keep the accepted 0.3.0 installation/data separate for rollback. Full backup/restore includes campaigns, sessions, resources, groups, tokens, NPC identities and images; restore still creates a new directory.
 
-See [review checklist](CAMPAIGN-REVIEW.md) and [story status](BACKLOG.md). This candidate is not a replacement for the accepted October 19 0.3.0 download until reviewed.
+See [review checklist](CAMPAIGN-REVIEW.md) and [story status](BACKLOG.md). Ben authorized merging and releasing 0.4.0 on October 19 so there is one current version for demos. The DM will decide product acceptance.
 
 ## Launch instructions
 
@@ -101,7 +101,7 @@ If `session.json` is corrupt, startup stops rather than resetting progress. With
 
 Run `npm test` for the model, persistence, and local HTTP tests. The optional browser suite is `node test/browser-check.js`; install Playwright for development with `npm install --no-save playwright` and `npx playwright install chromium` first. This does not add any runtime dependency. `PLAYWRIGHT_MODULE` and `CHROMIUM_PATH` may point to an existing test runtime.
 
-See [VERIFICATION.md](VERIFICATION.md) for exact automated evidence and the remaining physical/group checklist, and [ARCHITECTURE.md](ARCHITECTURE.md) for the design. The accepted Phase 1 interface is retained; campaign-management candidate acceptance is pending. The automated suite simulates two browser clients; it cannot certify a particular monitor, an entire offline game session, or usability at your table.
+See [VERIFICATION.md](VERIFICATION.md) for exact automated evidence and the remaining physical/group checklist, and [ARCHITECTURE.md](ARCHITECTURE.md) for the design. The accepted Phase 1 interface is retained; the campaign features are released for DM review. The automated suite simulates two browser clients; it cannot certify a particular monitor, an entire offline game session, or usability at your table.
 
 The original manual-map release is preserved at Git tag `phase-1-manual`. The character extension is on branch `benny/character-minis`. Campaign backups are in `data/backups/before-character-minis.json` (before development) and `data/backups/before-character-upgrade-live.json` (immediately before the live server upgrade). Maps are capped at 40 MB, 40 megapixels, and 12,000 pixels per side. Large maps should be trialed on the actual laptop before play. Character radius reveal is geometric; no walls, doors, movement rules, or lighting simulation are included.
 

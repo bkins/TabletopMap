@@ -24,3 +24,8 @@ Follow [CAMPAIGN-REVIEW.md](../CAMPAIGN-REVIEW.md). Human usability and physical
 
 The complete workspace uses schema 2. Keep review data separate from the accepted 0.3.0 installation; older binaries deliberately reject it. No release promotion is implied by automated results.
 
+
+
+## Promotion
+
+October 19: Ben authorized merging and releasing these changes for one demo version, with the DM to decide product acceptance. The previous 5190 review setup is historical; current demo is 0.4.0 on localhost:5180. UI version label now omits review; the earlier hashes identify the pre-promotion review files.

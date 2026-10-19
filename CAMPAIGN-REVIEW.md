@@ -1,10 +1,10 @@
 # Campaign management review
 
-Exact candidate: **0.4.0 / campaign-management-2026-10-19-v1**. This is separate from the accepted 0.3.0 installation and published October 19 release.
+Released candidate: **0.4.0 / campaign-management-2026-10-19-v1**. The earlier 0.3.0 release is retained as history.
 
-## Try it locally
+## Demo the current version
 
-Open `Start-Review.cmd`, then visit **http://localhost:5190/**. Review data is in this candidate's own `data` directory. The review copy of the original campaign has Wi-Fi disabled; phone invitations must be enabled explicitly in this copy and use port 5190. The accepted app remains on port 5180 with its original data. Tests use temporary folders and random ports.
+Run `Start-TabletopMap.cmd` and open **http://localhost:5180/**. Version 0.4.0 is the current demo/release, authorized by Ben on October 19. The former port-5190 review server is retired on the development computer. Pre-upgrade backups and the old review copy are retained for recovery, not as separate demo versions. The DM will decide product acceptance using the checklist below.
 
 ## Automation can test
 
@@ -19,7 +19,7 @@ Results and exact source hashes are recorded in `review-2026-10-19-campaigns/Rev
 
 ## Human needs to test
 
-Use the isolated review copy, not your only campaign data. Apply/Save desired form edits before a page reload.
+Export a backup before trying changes you do not want to retain. Apply/Save desired form edits before a page reload.
 
 - [ ] Review the labels and controls at your normal window size. Name a campaign and two sessions. Verify the new session continues the same map discoveries and token state.
 - [ ] Keep a map visible, import/choose another and change its setup/fog privately. Confirm the real player monitor stays on the original map until **Show to Players**. Check blank/show in both situations.

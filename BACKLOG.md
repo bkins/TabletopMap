@@ -54,3 +54,8 @@ Acceptance: organizational membership and spatial connections stay separate; exp
 Candidate: **0.4.0 / campaign-management-2026-10-19-v1** in `TabletopMap-Next`. TM-A/B/C/D/E/F are implemented, awaiting the review in `CAMPAIGN-REVIEW.md`. Existing saves migrate into one campaign/session; campaign locations own continuing progress, sessions reference them, and shared resources provide separate defaults. The new complete browser workflow and regression checks use temporary data, not the live campaign.
 
 TM-G remains **Deferred / optional**. No gameplay need for automatic staircase, portal or token-transition connections has been established. Explicit group/floor selection and Show to Players fulfill TM-F without implementing TM-G.
+
+
+## Release decision — October 19
+
+Ben explicitly authorized merging and releasing all changes through 0.4.0 for a single demo version. TM-A through TM-F are released; DM usability/product acceptance remains pending. TM-G stays optional/deferred. Earlier review-only status records the implementation checkpoint.
