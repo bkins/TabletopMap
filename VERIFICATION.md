@@ -130,3 +130,14 @@ Candidate: `dm-modes-2026-10-19-v1`, application 0.3.0. `npm test`: **37 passed,
 Existing browser suites **passed**: `test/save-browser-check.js`, `test/compass-browser-check.js`, `test/browser-check.js`, `test/character-browser-check.js`. Updated the latter two to enter Game-Play before using its tools/dice. Core browser suite's first concurrent run hit its existing direct-command revision race; a subsequent run passed the full suite. Edge's automated launch exited early in this environment; these successful checks used installed Chrome. No live campaign mutation was used for testing.
 
 Human checks remain separate: normal DM usability/scaling, physical display/phone/audio behavior and manual partial-polygon/grid-measurement workflows. See `DM-REDESIGN-PLAN.md` for the checklist and `review-2026-10-19-dm-modes/Review.md` for exact candidate hashes and frozen screenshots. The GitHub October 18 ZIP remains unchanged.
+
+
+## Campaign management — 0.4.0 / campaign-management-2026-10-19-v1
+
+**47/47 unit/HTTP checks passed, none skipped.** Ten new campaign checks cover schema migration/idempotence and an untouched permanent original disk snapshot, separate prepared/published maps, empty-session safety, continuing sessions, independent campaign progress and Wi-Fi blanking, explicit resource defaults/fresh copies, persistent NPC movement/templates, groups, published-map phone movement and cross-campaign credential rejection. Schema-2 saves missing workspace metadata and corrupt reusable map geometry fail validation.
+
+**Complete workflow browser check passed** (`test/campaigns-browser-check.js`, Chrome): Village remains published while Castle is imported/revealed privately; actual blue Castle pixels appear only after publication; map groups and floor navigation, NPC identity movement, independent template spawns, continuing sessions, another campaign's clean resource use, full backup/restore/restart and mobile overflow all pass without page errors.
+
+**Existing browser regressions passed:** DM modes/drafts/pending and failed saves, save queue, compass, core fog/rotation/blanking/disconnect, character/phone/dice and profile/avatar. Direct test commands now retry only expected revision races up to three times with an unchanged DM map; production revision rejection remains covered by HTTP tests. Core import expectation changed deliberately to preserve the previously published map.
+
+The original port-5180 campaign was exported read-only and copied to the isolated review directory. Migration comparison verified identical fog operations/cursor, grid, geometry, tokens and assets; only the review copy disables Wi-Fi. Original source/data and accepted 0.3.0 release were not replaced. Test campaigns used temporary directories/random ports; review uses 5190. No physical-monitor/phone/audio or human acceptance is inferred. See CAMPAIGN-REVIEW.md.

@@ -61,7 +61,7 @@ export function moveCharacter(state,key,request){
   Object.assign(t,position(m,Math.max(0,Math.min(m.width,t.x+step*Math.round(dx/length))),Math.max(0,Math.min(m.height,t.y+step*Math.round(dy/length))),t.id));remember(m,t);s.revision++;return s;
 }
 export function controllerState(state,key){
-  for(const m of Object.values(state.maps)){const t=m.characters?.tokens.find(t=>t.key===key&&isPlayer(t));if(t){const {key:secret,...token}=t;return {revision:state.revision,mapId:m.id,mapName:m.name,enabled:state.active===m.id&&!!m.characters.enabled&&t.visible!==false,blank:state.blank,token};}}
+  for(const m of Object.values(state.maps)){if(state.workspace&&m.campaignId!==state.workspace.currentCampaign)continue;const t=m.characters?.tokens.find(t=>t.key===key&&isPlayer(t));if(t){const {key:secret,...token}=t;return {revision:state.revision,mapId:m.id,mapName:m.name,enabled:state.active===m.id&&!!m.characters.enabled&&t.visible!==false,blank:state.blank,token};}}
   throw Error('Controller link is invalid or has been revoked');
 }
 export function customizeCharacter(state,key,request){

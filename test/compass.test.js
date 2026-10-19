@@ -1,3 +1,4 @@
+import {registerImport} from '../campaigns.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {defaults,mutate,playerState,validateSession} from '../model.js';
@@ -11,9 +12,9 @@ test('compass rotates independently of locked geometry and fog, normalizes, and 
 });
 test('legacy saves hide compass; backup validation retains per-map settings and rejects corruption',()=>{
  const s=validateSession(fixture());assert.deepEqual(s.maps.a.compass,{enabled:false,rotation:0});
- s.maps.b={...structuredClone(s.maps.a),id:'b'};
+ registerImport(s,{...structuredClone(s.maps.a),id:'b'});s.workspace.selected='a';s.workspace.campaigns[s.workspace.currentCampaign].selected='a';
  const next=mutate(s,{type:'compass',compass:{enabled:true,rotation:120}});
  assert.deepEqual(validateSession(JSON.parse(JSON.stringify(next))).maps.a.compass,{enabled:true,rotation:120});
- assert.deepEqual(playerState(mutate(next,{type:'select',id:'b'})).map.compass,{enabled:false,rotation:0});
+ const selected=mutate(next,{type:'select',id:'b'});assert.deepEqual(playerState(selected).map.compass,{enabled:true,rotation:120});assert.deepEqual(playerState(mutate(selected,{type:'publish'})).map.compass,{enabled:false,rotation:0});
  next.maps.a.compass.rotation=400;assert.throws(()=>validateSession(next),/Invalid compass/);
 });

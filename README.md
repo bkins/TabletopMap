@@ -1,14 +1,42 @@
-# Tabletop Map — Phase 1
+# Tabletop Map — Campaign workspace
 
 A local, offline browser application for gradual discovery at an in-person D&D table. The DM sees the complete player-facing map, editable discovery, and a player composition preview. The table window shows only the composited revealed map. Physical miniatures stay in place because table geometry starts locked and can only change deliberately from the DM controls.
 
-## DM workspace modes — October 19 review
+## Campaign workspace — 0.4.0
 
-Use **Map Setup** to import/select maps, configure the player display, prepare tokens, set the grid/physical scale and adjust the compass. Use **Game-Play** for reveal/cover, token movement and visibility, player QR invitations, atmosphere and dice. The map canvas, table preview and top-bar Open/Blank/Show controls remain available in both. Choose the map tool above the canvas; Setup starts with private navigation, Game-Play with the reveal brush. The **Measure two map grid points** button selects calibration in Setup.
+The DM view has **Map Setup** for preparation and **Game-Play** for the game. Both modes use the same map canvas and token objects; switching tabs preserves pending edits, DM navigation and player connections. Apply/Save desired edits before reloading: unapplied form drafts belong to this browser page only.
 
-Switching tabs does not change the active map, fog, token positions, player display or private DM pan/zoom. Both modes edit the same tokens. Unapplied form values stay in this DM page across tab switches and background refreshes; use their Apply/Save button to commit them. Save token settings applies that token's complete form, including retained Setup edits. Reloading the page discards unapplied drafts and starts in Setup, so save desired changes first. Saves already underway continue when switching modes.
+### Campaigns and sessions
 
-Selecting a saved map in Setup still changes the active map and blanks the table after confirmation. Private preparation of a different map is future work. See [Phase 1 plan and manual checklist](DM-REDESIGN-PLAN.md) and [future stories](BACKLOG.md). This local review candidate is separate from the October 18 download package.
+In Map Setup, create or rename a campaign, then create/name sessions. A new session carries references to the previous session’s prepared locations: it does not clear fog, tokens or progress. Returning to an older session resumes current campaign progress, not an historical rewind. Switching campaigns blanks the table and disables Wi-Fi player access; show the intended map and enable Wi-Fi deliberately when ready. The original single-session save becomes **My campaign / Session 1**.
+
+### Prepare privately; show deliberately
+
+Import or select a prepared map using the sidebar or **Go to map / floor**. The player display stays on its published map. **Show to Players** publishes the selected map, including its saved fog restrictions, and shows the table. It never reveals covered areas automatically. The first imported map remains covered/blanked until shown. Emergency Blank/Show still controls the current player display. The status above the canvas identifies both the privately selected map and the player-visible map.
+
+The lower preview always shows the **live player display**. Its drag/resize tools are available only when the selected map is the player map. Prepare another map’s grid/geometry with the Setup controls and private main canvas; selecting it never changes the live preview. Player phone movement continues on the published map while the DM prepares another one. QR invitations are available only for the published map.
+
+### Reusable maps
+
+Open **Reusable map library**. **Add / resume this location** adds this campaign’s existing use of that resource to the current session, preserving its progress. If none exists in this campaign, it creates an independent covered map without tokens. **Use a fresh copy** explicitly creates independent progress even within the same campaign. Rename prepared locations when you need to distinguish multiple copies.
+
+**Save selected map’s setup to library** updates defaults (image, grid, geometry, atmosphere and compass) for future copies. It does not include fog, tokens or player secrets, and never rewrites progress in existing locations. Each location retains its own preparation snapshot; updating defaults is not a live change to all maps.
+
+### Named NPCs and token templates
+
+Add an NPC token and open **Persistent NPCs & token templates**. **Keep selected NPC’s identity** registers that named character in this campaign. Select another map, choose the NPC and **Move NPC to selected map**: identity, name, appearance and visibility are retained, with one placement on a free grid square. Its old placement is removed; if the old map is on the table, players see it leave. Removing the token also removes its persistent identity, so use Move to relocate it.
+
+**Save selected token as a template** stores reusable preparation defaults. **Add token from template** creates independent tokens with new IDs and private links and finds free grid squares. Templates contain no placements, exploration, credentials or persistent NPC identity. Existing artwork/name/color/type/reveal settings are supported; this phase does not add combat statistics or rules enforcement.
+
+### Groups and floor navigation
+
+Create a named map group and add the selected map. Groups reference reusable map resources and can organize floors, caves or castle areas without copying definitions. Use **Map group** and **Go to map / floor** above the canvas to privately preview prepared locations, then **Show to Players**. Groups do not define physical connections. Optional staircases/portals (TM-G) remain deferred.
+
+### Upgrade and rollback
+
+This version uses saved schema **2**. Before migrating a schema-1 save, startup preserves its original JSON as `session.before-campaign-workspace-v1.json`; original image assets stay in the data directory. The first successful save writes schema 2. Export a complete all-campaign backup before upgrading. Older versions reject schema 2; do not point them at upgraded data. Keep the accepted 0.3.0 installation/data separate for rollback. Full backup/restore includes campaigns, sessions, resources, groups, tokens, NPC identities and images; restore still creates a new directory.
+
+See [review checklist](CAMPAIGN-REVIEW.md) and [story status](BACKLOG.md). Ben authorized merging and releasing 0.4.0 on October 19 so there is one current version for demos. The DM will decide product acceptance.
 
 ## Launch instructions
 
@@ -22,7 +50,7 @@ On Windows, double-click `Start-TabletopMap.cmd`. It starts the local server and
 2. Open the DM view on the laptop. Click **Open table display** and allow that popup if the browser blocks it.
 3. Move the new window to the table monitor, then optionally click **Fullscreen · one monitor**. The map appears immediately without clicking fullscreen. Keep browser zoom at **100%** in both windows. Escape exits fullscreen. The player window has no pan, zoom, or drawing controls.
 4. Confirm **Table connected** in the DM view. The reported dimensions should match the fullscreen table viewport. The embedded preview uses those dimensions to reproduce the table composition at a smaller size; it does not establish table connectivity.
-5. Import a PNG or JPEG. Every import creates a new saved map, fully covered and blanked. Click **Show table** when ready: an unrevealed map still appears black.
+5. Import a PNG or JPEG. Every import creates a new covered prepared map. The current player map stays unchanged. Click **Show to Players** when ready: an unrevealed map still appears black.
 6. Calibrate and lock the display before placing miniatures. A change in OS scaling, browser zoom, fullscreen state, or monitor resolution requires checking physical scale again.
 
 The software lock protects the app's map transform; it cannot lock Windows display settings or the browser's own menus. Do not change those during play.
@@ -39,7 +67,7 @@ Keep Windows in Extend mode and keep the current vertically stacked layout. For 
 - **Reveal all** and **Cover all** require a confirmation and are undoable. They do not erase your earlier history.
 - **Blank table / Show table**, or Space outside input fields, toggles the entire player display without changing discovery. Blank is saved.
 - Wheel zoom and middle-button drag change only your DM view. Alternatively choose **Navigate DM view** to pan with the left button. **Fit DM view** does not move the table.
-- Selecting a saved map preserves each map's discovery and calibration, and blanks the table until you choose Show table.
+- Selecting a prepared map preserves discovery/calibration and previews it privately. Show to Players changes the shared table deliberately.
 
 ## Compass overlay
 
@@ -73,7 +101,7 @@ If `session.json` is corrupt, startup stops rather than resetting progress. With
 
 Run `npm test` for the model, persistence, and local HTTP tests. The optional browser suite is `node test/browser-check.js`; install Playwright for development with `npm install --no-save playwright` and `npx playwright install chromium` first. This does not add any runtime dependency. `PLAYWRIGHT_MODULE` and `CHROMIUM_PATH` may point to an existing test runtime.
 
-See [VERIFICATION.md](VERIFICATION.md) for exact automated evidence and the remaining physical/group checklist, and [ARCHITECTURE.md](ARCHITECTURE.md) for the design. Phase 1 is implemented; human acceptance is pending. The automated suite simulates two browser clients; it cannot certify a particular monitor, an entire offline game session, or usability at your table.
+See [VERIFICATION.md](VERIFICATION.md) for exact automated evidence and the remaining physical/group checklist, and [ARCHITECTURE.md](ARCHITECTURE.md) for the design. The accepted Phase 1 interface is retained; the campaign features are released for DM review. The automated suite simulates two browser clients; it cannot certify a particular monitor, an entire offline game session, or usability at your table.
 
 The original manual-map release is preserved at Git tag `phase-1-manual`. The character extension is on branch `benny/character-minis`. Campaign backups are in `data/backups/before-character-minis.json` (before development) and `data/backups/before-character-upgrade-live.json` (immediately before the live server upgrade). Maps are capped at 40 MB, 40 megapixels, and 12,000 pixels per side. Large maps should be trialed on the actual laptop before play. Character radius reveal is geometric; no walls, doors, movement rules, or lighting simulation are included.
 

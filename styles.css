@@ -20,3 +20,5 @@ body[data-dm-mode=play] #placementSurface{display:none!important}
 @media(min-width:951px){aside{max-height:calc(100vh - 180px)}}
 @media(max-width:950px){.dm-modes p{display:block;margin:10px 0 0}.canvas-tools{flex-wrap:wrap;gap:0}}
 @media(max-width:650px){.workspace{order:0}.dm-modes{padding:12px}.dm-modes [role=tab]{min-width:120px}aside{max-height:45vh;overflow:auto}}
+
+.library-tools{margin:16px 0;border:1px solid var(--line);border-radius:8px;padding:12px}.library-tools summary{cursor:pointer;font-size:12px;font-weight:600;line-height:1.6}.map-navigation{display:flex;gap:16px;align-items:center;padding:0 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}.map-navigation label{flex:1;min-width:170px}.map-navigation p{max-width:240px}#publicationStatus{color:#e7c87a;font-weight:600}#publishMap{background:#234b3b;border-color:#86cfa2}.header-actions{flex-wrap:wrap}.workspace .panel-heading p{line-height:1.5}

@@ -1,3 +1,4 @@
+import {registerImport} from './campaigns.js';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -89,7 +90,7 @@ export async function start({port=Number(process.env.PORT||5180),dir=process.env
       if(url.pathname==='/api/state'){
         const desktopRunning=displayManager.status().running;
         const tableScreens=[...screens.values()].filter(s=>Date.now()-s.seen<3500&&(s.mode!=='windows'||desktopRunning)).sort((a,b)=>Number(b.mode==='windows')-Number(a.mode==='windows'));
-        return json(res,{...store.state,blank:panic||store.state.blank,networkUrls:ips.map(ip=>`http://${ip}:${server.address().port}`),tableScreens});
+        return json(res,{...store.state,active:store.state.workspace.selected,published:store.state.active,blank:panic||store.state.blank,networkUrls:ips.map(ip=>`http://${ip}:${server.address().port}`),tableScreens});
       }
       if(url.pathname==='/api/player')return json(res,snapshot());
       if(url.pathname==='/api/events'){
@@ -106,8 +107,8 @@ export async function start({port=Number(process.env.PORT||5180),dir=process.env
         if(emergency){panic=true;panicEpoch++;invite=null;inviteSeq++;publish();}const acceptedPanicEpoch=panicEpoch;
         await serialize(async()=>{
           if(!emergency&&a.revision!==store.state.revision)throw Error('Session changed. Refresh controls and retry.');
-          const next=mutate(store.state,a);if(panic&&a.type!=='blank')next.blank=true;
-          await store.save(next);if(a.type==='blank'&&acceptedPanicEpoch===panicEpoch)panic=false;publish();
+          const next=mutate(store.state,a);const showing=a.type==='blank'||a.type==='publish';if(panic&&(!showing||acceptedPanicEpoch!==panicEpoch))next.blank=true;
+          await store.save(next);if(['campaign-create','campaign-select'].includes(a.type)){sharedRolls=[];rollSeq++;rollTimes.clear();invite=null;inviteSeq++;}if((a.type==='blank'||a.type==='publish')&&acceptedPanicEpoch===panicEpoch)panic=false;publish();
         });return json(res,{ok:true});
       }
       if(req.method==='POST'&&url.pathname==='/api/import'){
@@ -116,7 +117,7 @@ export async function start({port=Number(process.env.PORT||5180),dir=process.env
         if(!png&&!jpg)throw Error('Choose a PNG or JPEG image');
         if(!Number.isInteger(meta.width)||!Number.isInteger(meta.height)||meta.width<1||meta.height<1||meta.width>12000||meta.height>12000||meta.width*meta.height>40000000)throw Error('Map must be at most 40 megapixels and 12,000 pixels per side');
         await serialize(async()=>{const id=randomUUID(),asset=id+(png?'.png':'.jpg');await fs.writeFile(path.join(dir,asset),bytes);const next=structuredClone(store.state);
-          next.maps[id]={id,name:String(meta.name||'Untitled map').slice(0,120),asset,width:meta.width,height:meta.height,ops:[],cursor:0,grid:{pixels:100,x:0,y:0,overlay:false},characters:characterDefaults(),atmosphere:atmosphereDefaults(),compass:compassDefaults(),view:{x:0,y:0,scale:0.96,rotation:0,ppi:96,squareInches:1,locked:true,screenWidth:1920,screenHeight:1080}};next.active=id;next.blank=true;next.revision++;await store.save(next);publish();
+          const imported={id,name:String(meta.name||'Untitled map').slice(0,120),asset,width:meta.width,height:meta.height,ops:[],cursor:0,grid:{pixels:100,x:0,y:0,overlay:false},characters:characterDefaults(),atmosphere:atmosphereDefaults(),compass:compassDefaults(),view:{x:0,y:0,scale:0.96,rotation:0,ppi:96,squareInches:1,locked:true,screenWidth:1920,screenHeight:1080}};registerImport(next,imported);next.revision++;await store.save(next);publish();
         });return json(res,{ok:true});
       }
       if(url.pathname==='/api/backup'){

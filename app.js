@@ -45,9 +45,9 @@ async function refresh(statusOnly=false){const r=await fetch('/api/state',{signa
   if(map){const loaded=changed||!image?await loadImage('/assets/'+map.asset):image;await loadTokenArt(map);if(ticket!==loadTicket)return;image=loaded;composition=compose(image,map,map.ops.slice(0,map.cursor));if(changed)fitDM();}
   if(statusOnly)controlsPending=true;else{updateControls();controlsPending=false;}draw();
 }
-function updateControls(){renderControls();restoreDrafts();}
+function updateControls(){renderControls();updateCampaignControls();restoreDrafts();}
 function renderControls(){
-  $('empty').hidden=!!map;$('mapTitle').textContent=map?.name||'Your next adventure starts here';$('instructions').textContent=map?'Complete map with a shaded fog guide. Your navigation stays private.':'Import a map to begin. New maps start covered and blanked.';$('maps').replaceChildren(...Object.values(state.maps).map(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;return o;}));$('maps').value=state.active||'';
+  $('empty').hidden=!!map;$('mapTitle').textContent=map?.name||'Your next adventure starts here';$('instructions').textContent=map?'Complete map with a shaded fog guide. Your navigation stays private.':'Import a map to begin. New maps start covered and blanked.';$('maps').replaceChildren(...sessionMaps().map(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;return o;}));$('maps').value=state.active||'';
   $('blank').textContent=state.blank?'Show table · Space':'Blank table · Space';$('previewLabel').textContent=state.blank?'Table is blanked. Show table when ready.':'Same fog, position, and scale as the table display.';
   $('saveStatus').textContent=`Saved locally · revision ${state.revision}`;$('undo').disabled=!map||!map.cursor;$('redo').disabled=!map||map.cursor===map.ops.length;
   for(const id of ['allReveal','allCover','lock','fitDM'])$(id).disabled=!map;
@@ -55,13 +55,13 @@ function renderControls(){
   $('atmosphereEffect').value=map?.atmosphere?.effect||'none';$('atmosphereSound').value=map?.atmosphere?.sound||'none';$('atmosphereVolume').value=map?.atmosphere?.volume??0.2;$('saveAtmosphere').disabled=!map;
   $('compassEnabled').checked=map?.compass?.enabled??false;$('compassRotation').value=map?.compass?.rotation??0;
   $('compassControls').querySelectorAll('input,button').forEach(c=>c.disabled=!map);
-  const placementLocked=!map||map.view.locked;
+  const placementLocked=!map||map.view.locked||state.active!==state.published;
   for(const id of ['bestFit','previewFit','previewSmaller','previewLarger'])$(id).disabled=placementLocked;
-  $('previewLock').disabled=!map;$('previewLock').textContent=placementLocked?'Unlock placement…':'Lock placement';
+  $('previewLock').disabled=!map||state.active!==state.published;$('previewLock').textContent=placementLocked?'Unlock placement…':'Lock placement';
   $('placementSurface').hidden=placementLocked;
-  $('placementHint').textContent=placementLocked?'Unlock placement to fit, drag, or resize the player map.':'Drag this preview to move the player map; scroll to resize. Best fit chooses the angle that fills more of the display. Lock when finished. Fitting changes physical square size.';
+  $('placementHint').textContent=state.active!==state.published?'This preview shows the live player map. Select that map to adjust its placement here. Private maps can be configured with the Setup controls.':placementLocked?'Unlock placement to fit, drag, or resize the player map.':'Drag this preview to move the player map; scroll to resize. Best fit chooses the angle that fills more of the display. Lock when finished. Fitting changes physical square size.';
   if(placementLocked)cancelPlacement();
-  if(!map)return;const v=map.view,g=map.grid;$('lock').textContent=v.locked?'🔒 Table position locked':'🔓 Table unlocked — minis may move';
+  if(!map){$('tableControls').querySelectorAll('input,button').forEach(c=>c.disabled=true);return;}const v=map.view,g=map.grid;$('lock').textContent=v.locked?'🔒 Table position locked':'🔓 Table unlocked — minis may move';
   for(const id of ['x','y','scale','ppi'])$(id).value=v[id];$('rotation').value=v.rotation||0;$('inches').value=v.squareInches;$('pixels').value=g.pixels;$('gridX').value=g.x;$('gridY').value=g.y;$('overlay').checked=g.overlay;
   $('tableControls').querySelectorAll('input,button').forEach(c=>c.disabled=v.locked);
 }
@@ -90,7 +90,7 @@ $('finish').onclick=run(finish);$('tool').onchange=()=>{polygon=[];calibration=[
 $('reveal').onclick=()=>{reveal=true;$('reveal').classList.add('selected');$('cover').classList.remove('selected');};$('cover').onclick=()=>{reveal=false;$('cover').classList.add('selected');$('reveal').classList.remove('selected');};$('brush').oninput=()=>{$('brushValue').textContent=$('brush').value+' px';};
 $('fitDM').onclick=fitDM;$('open').onclick=()=>{if($('displayMode').value==='browser')window.open('/table','tabletop-player');else $('fillScreens').click();};$('blank').onclick=run(async()=>{if(state?.blank)return action({type:'blank',value:false});const r=await fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'blank',value:true})});const result=await r.json();if(!r.ok)throw Error(result.error);await refresh();});$('undo').onclick=run(()=>action({type:'undo'}));$('redo').onclick=run(()=>action({type:'redo'}));
 for(const [id,value] of [['allReveal',true],['allCover',false]])$(id).onclick=run(async()=>{if(await confirm(value?'Reveal the entire map?':'Cover the entire map?',value?'Every room will become visible when the table is shown. You can undo this change.':'All discovered areas will be covered. Your earlier discovery history is preserved for Undo.'))await action({type:'operation',op:{type:'all',reveal:value}});});
-$('maps').onchange=run(async()=>{const id=$('maps').value;if(await confirm('Switch maps?','The table will go blank. Saved discovery and calibration stay with each map.'))await action({type:'select',id});else $('maps').value=state.active;});
+$('maps').onchange=run(()=>action({type:'select',id:$('maps').value}));
 $('lock').onclick=run(async()=>{if(map.view.locked&&!(await confirm('Unlock the table position?','Changing table scale or position can move the map beneath physical miniatures. Remove or record miniature positions before making changes.')))return;await action({type:'lock',value:!map.view.locked});});
 $('applyView').onclick=run(()=>action({type:'view',view:{x:Number($('x').value),y:Number($('y').value),scale:Number($('scale').value),rotation:Number($('rotation').value)}}));
 for(const [id,delta] of [['rotateLeft',-90],['rotateRight',90]])$(id).onclick=run(()=>action({type:'view',view:{rotation:(((map.view.rotation||0)+delta)%360+360)%360}}));
@@ -111,8 +111,8 @@ function renderCharacters(){
   if(!c.tokens.some(t=>t.id===selectedToken))selectedToken=c.tokens[0]?.id||'';
   $('tokens').replaceChildren(...c.tokens.map(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=t.name+(t.kind&&t.kind!=='player'?' · '+t.kind:'')+(t.visible===false?' · hidden':'');return o;}));$('tokens').value=selectedToken;
   const t=c.tokens.find(t=>t.id===selectedToken);$('tokenControls').querySelectorAll('input,button').forEach(e=>e.disabled=!t);
-  $('showAllQR').disabled=!state.networkEnabled||!c.enabled||!c.tokens.some(t=>(t.kind||'player')==='player'&&t.visible!==false);
-  $('showQR').disabled=!state.networkEnabled||!c.enabled||!t||t.visible===false;
+  $('showAllQR').disabled=state.active!==state.published||!state.networkEnabled||!c.enabled||!c.tokens.some(t=>(t.kind||'player')==='player'&&t.visible!==false);
+  $('showQR').disabled=state.active!==state.published||!state.networkEnabled||!c.enabled||!t||t.visible===false;
   if(!t){$('controlLink').value='';$('artworkPreview').hidden=true;$('playerLinkControls').hidden=true;return;}
   $('tokenName').value=t.name;$('tokenColor').value=t.color;$('tokenRadius').value=t.radius;$('tokenRadius').disabled=(t.kind||'player')!=='player';$('tokenVisible').checked=t.visible!==false;$('tokenX').value=Math.round(t.x*100)/100;$('tokenY').value=Math.round(t.y*100)/100;
   $('artworkPreview').hidden=!t.artwork;if(t.artwork)$('artworkPreview').src=t.artwork;else $('artworkPreview').removeAttribute('src');$('playerLinkControls').hidden=(t.kind||'player')!=='player';
@@ -120,8 +120,8 @@ function renderCharacters(){
 }
 const characterSettings=()=>action({type:'characters',enabled:$('charactersEnabled').checked,keepExplored:$('visibilityMode').value==='explored'});
 $('charactersEnabled').onchange=run(characterSettings);$('visibilityMode').onchange=run(characterSettings);$('networkEnabled').onchange=run(()=>action({type:'network',enabled:$('networkEnabled').checked}));
-$('tokens').onchange=()=>{selectedToken=$('tokens').value;updateCharacters();};
-$('addToken').onclick=run(async()=>{const name=$('newTokenName').value.trim(),kind=$('newTokenKind').value;if(!name)throw Error('Enter a token name');await action({type:'token-add',token:{name,kind,visible:kind==='player',color:kind==='monster'?'#cf5050':kind==='npc'?'#44ad8a':'#6389df',radius:kind==='player'?6:0,x:map.width/2,y:map.height/2}});selectedToken=map.characters.tokens.at(-1).id;$('newTokenName').value='';updateCharacters();});
+$('tokens').onchange=()=>{selectedToken=$('tokens').value;updateCharacters();updateCampaignControls();};
+$('addToken').onclick=run(async()=>{const name=$('newTokenName').value.trim(),kind=$('newTokenKind').value;if(!name)throw Error('Enter a token name');await action({type:'token-add',token:{name,kind,visible:kind==='player',color:kind==='monster'?'#cf5050':kind==='npc'?'#44ad8a':'#6389df',radius:kind==='player'?6:0,x:map.width/2,y:map.height/2}});selectedToken=map.characters.tokens.at(-1).id;$('newTokenName').value='';updateCharacters();updateCampaignControls();});
 $('saveToken').onclick=run(()=>action({type:'token-update',id:selectedToken,token:{name:$('tokenName').value.trim(),color:$('tokenColor').value,radius:Number($('tokenRadius').value),visible:$('tokenVisible').checked,x:Number($('tokenX').value),y:Number($('tokenY').value)}}));
 $('placeToken').onclick=()=>{$('tool').value='placeToken';$('tool').onchange();$('instructions').textContent='Click the map to place the selected character.';};
 $('copyLink').onclick=run(async()=>{try{await navigator.clipboard.writeText($('controlLink').value);$('networkStatus').textContent='Private character link copied.';}catch{$('controlLink').focus();$('controlLink').select();throw Error('Copy the selected private link manually');}});
@@ -218,3 +218,56 @@ displayRequest().then(showDisplayStatus).catch(()=>{$('displayStatus').textConte
 setInterval(()=>{if(!displayBusy&&$('displayMode').value==='windows'&&!['playerScreenA','playerScreenB'].includes(document.activeElement?.id))displayRequest().then(showDisplayStatus).catch(()=>{});},2000);
 
 setDMMode('setup');
+
+
+function sessionMaps(){const w=state?.workspace,c=w?.campaigns[w.currentCampaign];return c?c.sessions[c.activeSession].mapIds.map(id=>state.maps[id]):Object.values(state?.maps||{});}
+function options(id,items,selected,empty='None yet'){
+ const el=$(id),prior=el.value;el.replaceChildren(...items.map(item=>{const o=document.createElement('option');o.value=item.id;o.textContent=item.name;return o;}));
+ if(!items.length){const o=document.createElement('option');o.value='';o.textContent=empty;el.append(o);}
+ el.value=items.some(item=>item.id===selected)?selected:items.some(item=>item.id===prior)?prior:items[0]?.id||'';
+}
+function updateNavigation(){
+ const w=state?.workspace;if(!w)return;const group=w.groups[$('navigationGroup').value];
+ const items=sessionMaps().filter(m=>!group||group.resourceIds.includes(m.resourceId));options('navigateMap',items,state.active,'No prepared maps in this group');
+}
+function updateCampaignControls(){
+ const w=state?.workspace;if(!w)return;const c=w.campaigns[w.currentCampaign];
+ $('campaignName').placeholder=c.name;$('sessionName').placeholder=c.sessions[c.activeSession].name;$('mapName').placeholder=map?.name||'Choose a map first';
+ options('campaigns',Object.values(w.campaigns),c.id);options('sessions',Object.values(c.sessions),c.activeSession);
+ options('mapResources',Object.values(w.resources));options('tokenTemplates',Object.values(w.templates));
+ const groups=Object.values(w.groups).filter(g=>g.campaignId===c.id);options('mapGroups',groups);
+ options('navigationGroup',[{id:'',name:'All prepared maps'},...groups]);updateNavigation();
+ options('persistentNPCs',Object.values(w.actors).filter(a=>a.campaignId===c.id).map(a=>({id:a.id,name:a.definition.name})));
+ const actor=w.actors[$('persistentNPCs').value];$('npcLocation').textContent=actor?'Currently at '+state.maps[actor.mapId].name:'';
+ const published=state.maps[state.published];$('publicationStatus').textContent=map?(state.published===map.id?'Players’ active map: '+map.name+(state.blank?' (blanked)':''):'Private preparation: '+map.name+'. Players: '+(published?.name||'no map')+(state.blank?' (blanked)':'')):'Choose or import a map to prepare. Players: '+(published?.name||'no map');
+ $('publishMap').disabled=!map;
+ for(const id of ['renameMap','saveResource','addGroupMap','removeGroupMap','registerNPC','saveTemplate','spawnTemplate','moveNPC'])$(id).disabled=!map;
+ $('registerNPC').disabled=!map?.characters.tokens.some(t=>t.id===selectedToken&&t.kind==='npc'&&!t.actorId);
+ $('saveTemplate').disabled=!map?.characters.tokens.some(t=>t.id===selectedToken);
+ $('spawnTemplate').disabled=!map||!Object.keys(w.templates).length;
+ $('moveNPC').disabled=!map||!actor||actor.mapId===map.id;
+ for(const id of ['addGroupMap','removeGroupMap','renameGroup'])$(id).disabled=(!$('mapGroups').value)||(id!=='renameGroup'&&!map);
+ for(const id of ['resumeResource','freshResource'])$(id).disabled=!Object.keys(w.resources).length;
+}
+$('campaigns').onchange=run(async()=>{const id=$('campaigns').value;if(await confirm('Switch campaigns?','The table will blank and phone access turns off. Each campaign keeps its own progress.'))await action({type:'campaign-select',id});else updateCampaignControls();});
+$('createCampaign').onclick=run(async()=>{if(await confirm('Start a new campaign?','The table will blank. Your current campaign is saved and stays available.'))await action({type:'campaign-create',name:$('campaignName').value});$('campaignName').value='';});
+$('renameCampaign').onclick=run(()=>action({type:'campaign-rename',name:$('campaignName').value}));
+$('sessions').onchange=run(()=>action({type:'session-select',id:$('sessions').value}));
+$('createSession').onclick=run(async()=>{await action({type:'session-create',name:$('sessionName').value});$('sessionName').value='';});
+$('renameSession').onclick=run(()=>action({type:'session-rename',name:$('sessionName').value}));
+$('renameMap').onclick=run(()=>action({type:'map-rename',name:$('mapName').value}));
+$('resumeResource').onclick=run(()=>action({type:'resource-use',id:$('mapResources').value}));
+$('freshResource').onclick=run(async()=>{if(await confirm('Prepare a fresh map copy?','Creates a separate covered location with no tokens or discoveries. Existing progress is preserved.'))await action({type:'resource-use',id:$('mapResources').value,fresh:true});});
+$('saveResource').onclick=run(async()=>{if(await confirm('Update reusable map defaults?','Saves this map’s grid, display and environmental setup for future copies. Existing locations and their progress stay unchanged.'))await action({type:'resource-save'});});
+$('publishMap').onclick=run(()=>action({type:'publish'}));
+$('createGroup').onclick=run(async()=>{await action({type:'group-create',name:$('groupName').value});$('groupName').value='';});
+$('renameGroup').onclick=run(()=>action({type:'group-rename',id:$('mapGroups').value,name:$('groupName').value}));
+$('addGroupMap').onclick=run(()=>action({type:'group-add',id:$('mapGroups').value}));
+$('removeGroupMap').onclick=run(()=>action({type:'group-remove',id:$('mapGroups').value}));
+$('navigationGroup').onchange=updateNavigation;
+$('navigateMap').onchange=run(()=>action({type:'select',id:$('navigateMap').value}));
+$('registerNPC').onclick=run(()=>action({type:'actor-register',tokenId:selectedToken}));
+$('saveTemplate').onclick=run(()=>action({type:'template-save',tokenId:selectedToken}));
+$('spawnTemplate').onclick=run(()=>action({type:'template-spawn',id:$('tokenTemplates').value}));
+$('moveNPC').onclick=run(async()=>{if(await confirm('Move this named NPC here?','Keeps the NPC’s identity and removes its old placement. If players see the old map, they will see the NPC leave. Changing the displayed map still requires Show to Players.'))await action({type:'actor-move',id:$('persistentNPCs').value});});
+$('mapGroups').onchange=updateCampaignControls;$('persistentNPCs').onchange=updateCampaignControls;
