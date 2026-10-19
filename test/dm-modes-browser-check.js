@@ -17,7 +17,7 @@ try {
  await dm.locator('#import').setInputFiles({name:'mode-test.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
  await dm.waitForFunction(()=>document.querySelector('#mapTitle').textContent==='mode-test.png');
  const saved=()=>fetch(base+'/api/state').then(r=>r.json());
- const command=async a=>{const s=await saved();const r=await fetch(base+'/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...a,revision:s.revision})});assert.equal(r.status,200,await r.text());};
+ const command=async a=>{let active;for(let attempt=0;attempt<3;attempt++){const s=await saved();active??=s.active;assert.equal(s.active,active,'Active DM map changed during test command');const r=await fetch(base+'/api/action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...a,revision:s.revision})});const message=await r.text();if(r.status===400&&message.includes('Session changed')&&attempt<2)continue;assert.equal(r.status,200,message);return;}};
  await command({type:'token-add',token:{name:'Ranger',kind:'player',color:'#6389df',radius:0,x:150,y:150}});
  await command({type:'operation',op:{type:'rectangle',reveal:true,points:[[0,0],[300,300]]}});
  await command({type:'blank',value:false});

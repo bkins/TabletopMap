@@ -1,10 +1,10 @@
 # Tabletop Map future capabilities
 
-These are proposed, unimplemented stories from the October 19 DM redesign specification. Phase 1 is limited to interface modes; this file does not authorize later implementation. No repository backlog convention existed at review time, so these stable local story IDs provide a planning reference.
+Ben authorized remaining backlog implementation on October 19 after accepting the Phase 1 interface. Stories TM-A through TM-F are implemented in the separate 0.4.0 review candidate; automated verification passes and human acceptance remains pending. TM-G remains optional/deferred as specified below. No repository backlog convention existed at review time, so these stable local story IDs provide a planning reference.
 
 ## Recommended planning sequence
 
-Plan D's campaign/progress ownership and B's reusable-map state boundary together before migrating persistence. Then implement A's private preparation/publication, C's persistent identities (before reusable templates if tradeoffs require it), E's organization, and F's quick transitions. G is optional and follows explicit navigation needs. This is a recommendation, not an approved schedule; A can ship earlier only if its selected/published-map boundary is designed compatibly with D/B.
+Plan D's campaign/progress ownership and B's reusable-map state boundary together before migrating persistence. Then implement A's private preparation/publication, C's persistent identities (before reusable templates if tradeoffs require it), E's organization, and F's quick transitions. G is optional and follows explicit navigation needs. Implemented D/B ownership first, then A publication, C identities/templates and E/F organization/navigation. The accepted 0.3.0 release remains unchanged during review.
 
 ## TM-A — Multiple prepared maps and explicit player publication
 
@@ -47,3 +47,10 @@ Acceptance: readable names and a simple selector; no internal IDs exposed; selec
 As a DM, define optional staircases, ladders, doors or portals connecting map locations, with deliberate token transitions if needed.
 
 Acceptance: organizational membership and spatial connections stay separate; explicit source/destination and safe token identity/visibility handling; DM controls publication; basic map/group navigation works without connections. Depends on A/B/C/F and a demonstrated gameplay need. Do not implement automatically after the other stories.
+
+
+## Implementation evidence and remaining gate
+
+Candidate: **0.4.0 / campaign-management-2026-10-19-v1** in `TabletopMap-Next`. TM-A/B/C/D/E/F are implemented, awaiting the review in `CAMPAIGN-REVIEW.md`. Existing saves migrate into one campaign/session; campaign locations own continuing progress, sessions reference them, and shared resources provide separate defaults. The new complete browser workflow and regression checks use temporary data, not the live campaign.
+
+TM-G remains **Deferred / optional**. No gameplay need for automatic staircase, portal or token-transition connections has been established. Explicit group/floor selection and Show to Players fulfill TM-F without implementing TM-G.
